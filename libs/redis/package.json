@@ -16,6 +16,8 @@
     "@nestjs/cache-manager": "^2.1.0",
     "cache-manager": "^5.2.0",
     "cache-manager-redis-store": "^3.0.1",
+    "redis": "^4.6.0",
+    "ioredis": "^5.3.0",
     "@calo/shared": "1.0.0"
   },
   "devDependencies": {

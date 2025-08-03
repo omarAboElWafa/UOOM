@@ -4,6 +4,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ChannelRankingService } from './services/channel-ranking.service';
 import { RedisHealthIndicator } from './health/redis-health.indicator';
 import { RedisClientService } from './services/redis-client.service';
+import { RedisSortedSetsService } from './services/redis-sorted-sets.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { RedisClientService } from './services/redis-client.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [ChannelRankingService, RedisHealthIndicator, RedisClientService],
-  exports: [ChannelRankingService, RedisHealthIndicator, RedisClientService],
+  providers: [ChannelRankingService, RedisHealthIndicator, RedisClientService, RedisSortedSetsService],
+  exports: [ChannelRankingService, RedisHealthIndicator, RedisClientService, RedisSortedSetsService],
 })
 export class RedisLibModule {} 
