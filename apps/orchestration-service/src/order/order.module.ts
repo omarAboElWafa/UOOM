@@ -2,26 +2,34 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
 
-import { Order } from '../entities/order.entity';
-import { OutboxEvent } from '../entities/outbox-event.entity';
-import { DynamoDBModule } from '@calo/database';
-
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
-import { OptimizationService } from './optimization.service';
+import { Order } from '../entities/order.entity';
+import { OutboxEvent } from '../entities/outbox-event.entity';
+import { CircuitBreakerService } from '../common/services/circuit-breaker.service';
+import { SagaModule } from '../saga/saga.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OutboxEvent]),
     BullModule.registerQueue({
       name: 'optimization',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+        removeOnComplete: 100,
+        removeOnFail: 50,
+      },
     }),
-    DynamoDBModule, // Add DynamoDB module for order caching
+    SagaModule, // Import saga module
   ],
   controllers: [OrderController],
   providers: [
     OrderService,
-    OptimizationService,
+    CircuitBreakerService,
   ],
   exports: [OrderService],
 })

@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader, ApiParam } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,6 +28,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 import { LoggingInterceptor } from '../interceptors/logging.interceptor';
 import { MetricsInterceptor } from '../interceptors/metrics.interceptor';
+import { OrderSagaService } from '../saga/order-saga.service';
 
 @Controller('orders')
 @ApiTags('orders')
@@ -35,6 +37,7 @@ import { MetricsInterceptor } from '../interceptors/metrics.interceptor';
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
+    private readonly orderSagaService: OrderSagaService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
   ) {}
@@ -214,5 +217,54 @@ export class OrderController {
   })
   async cancelOrder(@Param('id') orderId: string): Promise<OrderResponseDto> {
     return this.orderService.cancelOrder(orderId);
+  }
+
+  @Get(':id/saga')
+  @ApiOperation({ 
+    summary: 'Get order saga status',
+    description: 'Retrieves saga orchestration status for debugging and monitoring'
+  })
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Saga status retrieved' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Order or saga not found' 
+  })
+  async getOrderSagaStatus(@Param('id') orderId: string) {
+    const sagaStatus = await this.orderSagaService.getOrderSagaStatus(orderId);
+    
+    if (!sagaStatus) {
+      throw new NotFoundException(`No saga found for order ${orderId}`);
+    }
+
+    return {
+      sagaId: sagaStatus.id,
+      sagaType: sagaStatus.sagaType,
+      status: sagaStatus.status,
+      currentStep: sagaStatus.currentStep,
+      totalSteps: sagaStatus.totalSteps,
+      stepData: sagaStatus.stepData,
+      startedAt: sagaStatus.startedAt,
+      completedAt: sagaStatus.completedAt,
+      failedAt: sagaStatus.failedAt,
+      failureReason: sagaStatus.failureReason,
+    };
+  }
+
+  @Get(':id/sagas')
+  @ApiOperation({ 
+    summary: 'Get all order sagas',
+    description: 'Retrieves all saga executions for an order (for debugging)'
+  })
+  @ApiParam({ name: 'id', description: 'Order ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'All sagas retrieved' 
+  })
+  async getOrderSagas(@Param('id') orderId: string) {
+    return this.orderSagaService.getOrderSagas(orderId);
   }
 } 

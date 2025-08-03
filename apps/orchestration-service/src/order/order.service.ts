@@ -14,6 +14,7 @@ import { OrderStatusDto } from './dto/order-status.dto';
 import { OrderStatus, OrderPriority } from '@calo/shared';
 
 import { CircuitBreakerService } from '../common/services/circuit-breaker.service';
+import { OrderSagaService, OrderSagaData } from '../saga/order-saga.service';
 
 @Injectable()
 export class OrderService {
@@ -29,6 +30,7 @@ export class OrderService {
     private dataSource: DataSource,
     private circuitBreaker: CircuitBreakerService,
     private orderCacheService: OrderCacheService,
+    private orderSagaService: OrderSagaService,
   ) {}
 
   async processOrder(createOrderDto: CreateOrderDto, correlationId?: string): Promise<OrderResponseDto> {
@@ -37,89 +39,91 @@ export class OrderService {
     // Use database transaction with outbox pattern
     return this.dataSource.transaction(async manager => {
       try {
-                 // 1. Calculate order totals
-         const subtotal = createOrderDto.items.reduce((sum, item) => 
-           sum + (item.unitPrice * item.quantity), 0);
-         const tax = subtotal * 0.1; // 10% tax
-         const deliveryFee = 5.99; // Fixed delivery fee
-         const total = subtotal + tax + deliveryFee;
+        // 1. Calculate order totals
+        const subtotal = createOrderDto.items.reduce((sum, item) => 
+          sum + (item.unitPrice * item.quantity), 0);
+        const tax = subtotal * 0.1; // 10% tax
+        const deliveryFee = 5.99; // Fixed delivery fee
+        const total = subtotal + tax + deliveryFee;
 
-         // 2. Create order record
-         const order = manager.create(Order, {
-           customerId: createOrderDto.customerId,
-           restaurantId: '550e8400-e29b-41d4-a716-446655440000', // Would come from restaurant selection
-           items: createOrderDto.items.map(item => ({
-             ...item,
-             totalPrice: item.unitPrice * item.quantity,
-           })),
-           deliveryLocation: {
-             latitude: createOrderDto.deliveryAddress.latitude,
-             longitude: createOrderDto.deliveryAddress.longitude,
-             address: `${createOrderDto.deliveryAddress.street}, ${createOrderDto.deliveryAddress.city}`,
-             city: createOrderDto.deliveryAddress.city,
-             postalCode: createOrderDto.deliveryAddress.postalCode,
-           },
-           subtotal,
-           tax,
-           deliveryFee,
-           total,
-           priority: OrderPriority.NORMAL,
-           status: OrderStatus.PENDING,
-         });
+        // 2. Create order record with PENDING status
+        const order = manager.create(Order, {
+          customerId: createOrderDto.customerId,
+          restaurantId: '550e8400-e29b-41d4-a716-446655440000', // Would come from restaurant selection
+          items: createOrderDto.items.map(item => ({
+            ...item,
+            totalPrice: item.unitPrice * item.quantity,
+          })),
+          deliveryLocation: {
+            latitude: createOrderDto.deliveryAddress.latitude,
+            longitude: createOrderDto.deliveryAddress.longitude,
+            address: `${createOrderDto.deliveryAddress.street}, ${createOrderDto.deliveryAddress.city}`,
+            city: createOrderDto.deliveryAddress.city,
+            postalCode: createOrderDto.deliveryAddress.postalCode,
+          },
+          subtotal,
+          tax,
+          deliveryFee,
+          total,
+          priority: OrderPriority.NORMAL,
+          status: OrderStatus.PENDING, // Keep as PENDING until saga completes
+        });
 
         const savedOrder = await manager.save(order);
 
-                 // 3. Call optimization service with circuit breaker
-         const estimatedDeliveryTime = new Date(Date.now() + (createOrderDto.maxDeliveryTimeMinutes || 60) * 60 * 1000);
-         
-         // For now, simulate optimization (would call actual service)
-         savedOrder.estimatedDeliveryTime = estimatedDeliveryTime;
-         savedOrder.status = OrderStatus.CONFIRMED;
-
-        const finalOrder = await manager.save(savedOrder);
-
-                 // 4. Create outbox event for reliable event publishing
-         const outboxEvent = manager.create(OutboxEvent, {
-           type: 'ORDER_CREATED',
-           aggregateId: finalOrder.id,
-           aggregateType: 'Order',
-           data: {
-             orderId: finalOrder.id,
-             customerId: finalOrder.customerId,
-             restaurantId: finalOrder.restaurantId,
-             status: finalOrder.status,
-             total: finalOrder.total,
-             estimatedDeliveryTime: finalOrder.estimatedDeliveryTime,
-             items: finalOrder.items,
-             deliveryLocation: finalOrder.deliveryLocation,
-           },
-         });
+        // 3. Create initial outbox event for order creation
+        const outboxEvent = manager.create(OutboxEvent, {
+          type: 'ORDER_CREATED',
+          aggregateId: savedOrder.id,
+          aggregateType: 'Order',
+          data: {
+            orderId: savedOrder.id,
+            customerId: savedOrder.customerId,
+            restaurantId: savedOrder.restaurantId,
+            status: savedOrder.status,
+            total: savedOrder.total,
+            items: savedOrder.items,
+            deliveryLocation: savedOrder.deliveryLocation,
+            correlationId,
+          },
+        });
 
         await manager.save(outboxEvent);
 
-                 // 5. Cache order status in DynamoDB for fast reads
-         await this.cacheOrderStatus(
-           finalOrder.id,
-           finalOrder.status,
-           finalOrder.customerId,
-           finalOrder.restaurantId,
-           'default-channel', // Would be assigned by optimization
-           finalOrder.total,
-           finalOrder.estimatedDeliveryTime,
-         );
+                 // 4. Start saga orchestration for order processing
+         const sagaData: OrderSagaData = {
+           orderId: savedOrder.id,
+           customerId: savedOrder.customerId,
+           restaurantId: savedOrder.restaurantId,
+           items: savedOrder.items,
+           deliveryLocation: savedOrder.deliveryLocation,
+           totalAmount: savedOrder.total,
+           maxDeliveryTimeMinutes: createOrderDto.maxDeliveryTimeMinutes,
+           priority: savedOrder.priority.toString(),
+           specialInstructions: savedOrder.specialInstructions,
+         };
 
-                 // 6. Queue optimization processing
-         await this.optimizationQueue.add('process-optimization', {
-           orderId: finalOrder.id,
-         });
+        const sagaId = await this.orderSagaService.startOrderProcessingSaga(
+          savedOrder.id,
+          sagaData,
+          correlationId
+        );
 
-         const processingTime = Date.now() - startTime;
-         this.logger.log(`Order processed successfully in ${processingTime}ms`, {
-           orderId: finalOrder.id,
-           processingTime,
-         });
+        this.logger.log(`Order saga started`, {
+          orderId: savedOrder.id,
+          sagaId,
+          correlationId,
+        });
 
-        return this.mapToResponseDto(finalOrder);
+        const processingTime = Date.now() - startTime;
+        this.logger.log(`Order created and saga initiated in ${processingTime}ms`, {
+          orderId: savedOrder.id,
+          sagaId,
+          processingTime,
+        });
+
+        // Return order in PENDING status - saga will handle confirmation
+        return this.mapToResponseDto(savedOrder);
       } catch (error) {
         const processingTime = Date.now() - startTime;
         this.logger.error(`Order processing failed in ${processingTime}ms`, {

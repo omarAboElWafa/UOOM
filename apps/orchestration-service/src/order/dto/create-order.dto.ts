@@ -77,4 +77,9 @@ export class CreateOrderDto {
   @Min(15)
   @Max(120)
   maxDeliveryTimeMinutes?: number = 60;
+
+  @ApiProperty({ description: 'Special instructions for the order', required: false })
+  @IsOptional()
+  @IsNotEmpty()
+  specialInstructions?: string;
 } 
