@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from '@calo/database';
+import { OrderStatus } from '@calo/shared';
 
 export class OrderResponseDto {
   @ApiProperty({ description: 'Order ID' })
