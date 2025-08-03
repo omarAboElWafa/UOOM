@@ -2,7 +2,7 @@
 
 High-performance reverse proxy and API aggregation layer for the Unified Order Orchestration Platform (UOOP).
 
-## 🏗️ Architecture
+## **Architecture**
 
 The API Gateway serves as the single entry point for all client requests, providing:
 
@@ -14,9 +14,9 @@ The API Gateway serves as the single entry point for all client requests, provid
 - **Authentication & Authorization**: Centralized security enforcement
 - **Monitoring & Metrics**: Comprehensive observability
 
-## 🚀 Features
+## **Features**
 
-### ✅ Implemented
+### **Implemented**
 
 #### Core Gateway Functionality
 - **Reverse Proxy**: Routes requests to orchestration, optimization, and capacity services
@@ -37,7 +37,7 @@ The API Gateway serves as the single entry point for all client requests, provid
 - **Structured Logging**: Request/response logging with correlation IDs
 - **SLA Monitoring**: P99 latency ≤ 2s tracking
 
-### 📋 API Endpoints
+### **API Endpoints**
 
 #### Order Management (Proxied to Orchestration Service)
 ```
@@ -58,7 +58,7 @@ GET    /api/v1/metrics/performance - Performance metrics
 GET    /api/v1/metrics/sla         - SLA compliance metrics
 ```
 
-## 🔧 Configuration
+## **Configuration**
 
 ### Environment Variables
 
@@ -98,7 +98,7 @@ CIRCUIT_BREAKER_TIMEOUT=60000
 - **Order Creation**: Additional validation and priority handling
 - **Status Queries**: Aggressive caching (30s TTL)
 
-## 📊 Performance & SLA
+## **Performance & SLA**
 
 ### SLA Targets
 - **P99 Latency**: ≤ 2 seconds
@@ -173,7 +173,7 @@ User-Agent: UOOP-API-Gateway/1.0.0
 - Performance timing
 - Security events
 
-## 🚦 Usage
+## **Usage**
 
 ### Development
 ```bash
@@ -207,7 +207,7 @@ curl -X POST http://localhost:8080/api/v1/orders \
 curl http://localhost:8080/api/v1/metrics
 ```
 
-## 🏗️ Implementation Notes
+## **Implementation Notes**
 
 ### Service Discovery
 - Static configuration for development

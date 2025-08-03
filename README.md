@@ -2,7 +2,7 @@
 
 An intelligent order management platform for food delivery that achieves **P99 latency ≤ 2 seconds** through advanced optimization algorithms, real-time channel ranking, and CQRS with event-driven architecture.
 
-## 🎯 **Key Performance Metrics**
+## **Key Performance Metrics**
 
 - **P99 Order Processing**: ≤ 2 seconds end-to-end
 - **Channel Optimization**: <100ms using OR-Tools CP-SAT solver  
@@ -10,7 +10,7 @@ An intelligent order management platform for food delivery that achieves **P99 l
 - **Event Delivery**: 99.9% reliability with outbox pattern
 - **Cost Efficiency**: 30% reduction through intelligent routing
 
-## 🏗️ **Architecture Overview**
+## **Architecture Overview**
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -38,9 +38,9 @@ An intelligent order management platform for food delivery that achieves **P99 l
                        └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 **New Features - DynamoDB CQRS Implementation**
+## **New Features - DynamoDB CQRS Implementation**
 
-### **✅ Read/Write Separation (CQRS)**
+### **Read/Write Separation (CQRS)**
 
 We've implemented proper CQRS with:
 
@@ -48,7 +48,7 @@ We've implemented proper CQRS with:
 - **Read Side**: DynamoDB + DAX for ultra-fast status queries (<5ms)
 - **Event Sourcing**: Outbox pattern with Kafka for reliable event delivery
 
-### **⚡ DynamoDB + DAX Performance**
+### **DynamoDB + DAX Performance**
 
 | Operation | Target | Actual | Implementation |
 |-----------|--------|--------|----------------|
@@ -57,7 +57,7 @@ We've implemented proper CQRS with:
 | Status Updates | <100ms | ~50ms | Atomic writes + cache |
 | Batch Queries | <10ms | ~5ms | BatchGetItem API |
 
-### **📊 Cache Strategy**
+### **Cache Strategy**
 
 ```typescript
 // Order Status Cache (Hot Path)
@@ -71,15 +71,15 @@ POST /orders             → PostgreSQL + DynamoDB cache
 PUT /orders/{id}         → PostgreSQL + DynamoDB update
 ```
 
-## 🔧 **Services Overview**
+## **Services Overview**
 
-### **1. API Gateway** ⚡
+### **1. API Gateway**
 - Request routing and aggregation
 - Rate limiting and authentication
 - Circuit breaker integration
 - Load balancing across services
 
-### **2. Orchestration Service** 🎯
+### **2. Orchestration Service**
 - **CQRS Pattern**: PostgreSQL writes, DynamoDB reads
 - **DynamoDB Integration**: Order status caching with TTL
 - **DAX Acceleration**: <1ms read latency
@@ -87,26 +87,26 @@ PUT /orders/{id}         → PostgreSQL + DynamoDB update
 - Circuit breaker for optimization calls
 - Comprehensive transaction management
 
-### **3. Optimization Service** 🧠
+### **3. Optimization Service**
 - OR-Tools CP-SAT constraint solver
 - 100ms timeout for real-time performance
 - Multi-objective optimization (cost, time, quality)
 - Fallback logic for infeasible solutions
 
-### **4. Outbox Relay Service** 📤
+### **4. Outbox Relay Service**
 - **Event Delivery**: Polls outbox table every 5 seconds
 - **Kafka Publishing**: Reliable message delivery with retry
 - **Dead Letter Queue**: Failed message handling
 - **Exponential Backoff**: 1s → 2s → 4s → DLQ progression
 - **Batch Processing**: Configurable concurrency and batch sizes
 
-### **5. Redis Sorted Sets** 📊
+### **5. Redis Sorted Sets**
 - Real-time channel ranking using ZADD/ZINTERSTORE
 - Multi-criteria scoring (capacity, quality, latency, cost)
 - Dynamic weight-based channel selection
 - <5ms channel lookup performance
 
-## 🗄️ **Database Architecture**
+## **Database Architecture**
 
 ### **PostgreSQL (Write Model)**
 ```sql
@@ -160,7 +160,7 @@ CREATE TABLE outbox_events (
 }
 ```
 
-## 🚦 **Getting Started**
+## **Getting Started**
 
 ### **Prerequisites**
 - Node.js 18+
@@ -215,7 +215,7 @@ curl -X POST http://localhost:3001/api/orders \
 curl http://localhost:3001/api/orders/{orderId}/status
 ```
 
-## 📊 **Monitoring & Observability**
+## **Monitoring & Observability**
 
 ### **DynamoDB Metrics**
 - `outbox_events_processed_total` - Total events processed
@@ -235,14 +235,14 @@ curl http://localhost:3003/api/v1/metrics
 curl http://localhost:3003/api/v1/metrics/prometheus
 ```
 
-## 🔄 **Event Flow**
+## **Event Flow**
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant API as API Gateway
     participant Orch as Orchestration
-    participant Opt as Optimization
+    participant Optim as Optimization
     participant PG as PostgreSQL
     participant DDB as DynamoDB
     participant Relay as Outbox Relay
@@ -250,8 +250,8 @@ sequenceDiagram
 
     Client->>API: POST /orders
     API->>Orch: Create Order
-    Orch->>Opt: Optimize Route
-    Opt-->>Orch: Channel Assignment
+    Orch->>Optim: Optimize Route
+    Optim-->>Orch: Channel Assignment
     Orch->>PG: Save Order + Outbox Event
     Orch->>DDB: Cache Order Status
     Orch-->>Client: Order Response
@@ -266,7 +266,7 @@ sequenceDiagram
     Orch-->>Client: Status Response
 ```
 
-## 🚀 **Deployment**
+## **Deployment**
 
 ### **AWS Infrastructure**
 ```bash
@@ -287,7 +287,7 @@ ORDER_CACHE_TTL_HOURS=72   # 3 days retention
 AWS_REGION=us-east-1
 ```
 
-## 🎯 **Performance Benchmarks**
+## **Performance Benchmarks**
 
 | Scenario | P50 | P95 | P99 | Target |
 |----------|-----|-----|-----|--------|
@@ -297,7 +297,7 @@ AWS_REGION=us-east-1
 | Event Publishing | 15ms | 35ms | 65ms | <100ms |
 | Channel Optimization | 45ms | 75ms | 95ms | <100ms |
 
-## 🔍 **Troubleshooting**
+## **Troubleshooting**
 
 ### **DynamoDB Issues**
 ```bash
@@ -317,18 +317,18 @@ curl http://localhost:3001/api/metrics | grep dynamodb
 3. **Write Timeouts**: Check PostgreSQL connection pool
 4. **Event Delays**: Monitor outbox relay service health
 
-## 🏆 **Success Metrics**
+## **Success Metrics**
 
-✅ **CQRS Implementation**: PostgreSQL writes + DynamoDB reads  
-✅ **<5ms Status Queries**: DynamoDB + DAX acceleration  
-✅ **99.9% Event Delivery**: Outbox pattern with Kafka  
-✅ **Auto-scaling**: On-demand DynamoDB + DAX clustering  
-✅ **Cost Optimization**: TTL-based cleanup + intelligent caching  
+**CQRS Implementation**: PostgreSQL writes + DynamoDB reads  
+**<5ms Status Queries**: DynamoDB + DAX acceleration  
+**99.9% Event Delivery**: Outbox pattern with Kafka  
+**Auto-scaling**: On-demand DynamoDB + DAX clustering  
+**Cost Optimization**: TTL-based cleanup + intelligent caching  
 
-## 📄 **License**
+## **License**
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ for ultra-fast food delivery optimization** 
+**Built for ultra-fast food delivery optimization** 

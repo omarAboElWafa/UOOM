@@ -1,10 +1,10 @@
 # Saga Orchestration Engine Implementation
 
-## 🎯 Overview
+## **Overview**
 
 This document describes the implementation of a comprehensive saga orchestration engine for the UOOM food delivery order processing system. The saga pattern provides distributed transaction management with compensating actions for reliable order processing across multiple services.
 
-## 🏗️ Architecture
+## **Architecture**
 
 ### Core Components
 
@@ -29,7 +29,7 @@ graph TD
     G -->|Yes| H[Confirm Order]
     G -->|No| I[Compensate: Cancel Booking + Release Inventory]
     H --> J{Success?}
-    J -->|Yes| K[Order Confirmed ✅]
+    J -->|Yes| K[Order Confirmed]
     J -->|No| L[Compensate: Revert Confirmation + Cancel Booking + Release Inventory]
     F --> M[Order Failed ❌]
     I --> M
@@ -40,28 +40,28 @@ graph TD
 
 ```mermaid
 graph TD
-    A["📋 POST /orders"] --> B["OrderController.createOrder()"]
+    A["POST /orders"] --> B["OrderController.createOrder()"]
     B --> C["OrderService.processOrder()"]
     C --> D["Create Order Entity<br/>(PENDING status)"]
     D --> E["Start Order Processing Saga"]
     E --> F["SagaCoordinator.startSaga()"]
     F --> G["Queue saga-execution job"]
     
-    G --> H["🔄 Saga Execution (Async)"]
+    G --> H["Saga Execution (Async)"]
     H --> I["Step 1: Reserve Inventory"]
     I --> J{Inventory<br/>Available?}
-    J -->|✅ Yes| K["Step 2: Book Partner"]
-    J -->|❌ No| L["🔄 Compensate: Nothing to release"]
+    J -->|Yes| K["Step 2: Book Partner"]
+J -->|No| L["Compensate: Nothing to release"]
     
     K --> M{Partner<br/>Available?}
-    M -->|✅ Yes| N["Step 3: Confirm Order"]
-    M -->|❌ No| O["🔄 Compensate: Release Inventory"]
+    M -->|Yes| N["Step 3: Confirm Order"]
+M -->|No| O["Compensate: Release Inventory"]
     
     N --> P{Order<br/>Confirmed?}
-    P -->|✅ Yes| Q["✅ Saga Completed<br/>Order CONFIRMED"]
-    P -->|❌ No| R["🔄 Compensate: Cancel Booking + Release Inventory"]
+    P -->|Yes| Q["Saga Completed<br/>Order CONFIRMED"]
+P -->|No| R["Compensate: Cancel Booking + Release Inventory"]
     
-    L --> S["❌ Saga Failed<br/>Order FAILED"]
+    L --> S["Saga Failed<br/>Order FAILED"]
     O --> S
     R --> S
     
@@ -76,7 +76,7 @@ graph TD
     style R fill:#ffecb3
 ```
 
-## 🔧 Implementation Details
+## **Implementation Details**
 
 ### 1. Saga Entity Structure
 
@@ -136,7 +136,7 @@ async processOrder(createOrderDto: CreateOrderDto): Promise<OrderResponseDto> {
 }
 ```
 
-## 📊 Performance & Monitoring
+## **Performance & Monitoring**
 
 ### Saga Execution Metrics
 
@@ -178,7 +178,7 @@ GET /orders/{id}/sagas       // Get all saga attempts for an order
 }
 ```
 
-## 🔄 Failure Handling & Compensation
+## **Failure Handling & Compensation**
 
 ### Automatic Retry Logic
 
@@ -203,7 +203,7 @@ When a step fails, compensation occurs in reverse order:
 | Order confirmation fails | Cancel booking + Release inventory | Order FAILED |
 | Network timeout (retryable) | Retry with backoff | Eventually succeeds/fails |
 
-## 🚀 Benefits Achieved
+## **Benefits Achieved**
 
 ### 1. Reliability
 - **Atomic Operations**: Either all steps succeed or all are compensated
@@ -239,7 +239,7 @@ When a step fails, compensation occurs in reverse order:
 - Resource management: Guaranteed cleanup
 - Debugging: Complete execution visibility
 
-## 🔧 Configuration
+## **Configuration**
 
 ### Queue Configuration
 
@@ -280,7 +280,7 @@ CREATE INDEX idx_sagas_aggregate ON sagas(aggregate_id, aggregate_type);
 CREATE INDEX idx_sagas_status ON sagas(saga_type, status);
 ```
 
-## 🎯 Next Steps
+## **Next Steps**
 
 ### Potential Enhancements
 
@@ -304,10 +304,10 @@ The saga orchestration engine provides a robust foundation for managing complex 
 
 The implementation addresses the critical Priority 1 requirement identified in the code review, providing:
 
-- ✅ **Workflow Orchestration**: Complete order processing workflow management
-- ✅ **Compensating Actions**: Automatic rollback on failures
-- ✅ **State Management**: Comprehensive saga state tracking
-- ✅ **Performance Monitoring**: Detailed execution metrics
-- ✅ **Production Ready**: Robust error handling and retry logic
+- **Workflow Orchestration**: Complete order processing workflow management
+- **Compensating Actions**: Automatic rollback on failures
+- **State Management**: Comprehensive saga state tracking
+- **Performance Monitoring**: Detailed execution metrics
+- **Production Ready**: Robust error handling and retry logic
 
 This saga engine forms the backbone of reliable order processing, ensuring the system can meet its P99 ≤ 2s SLA while maintaining data consistency across all services. 
