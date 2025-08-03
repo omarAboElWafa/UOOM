@@ -1,7 +1,6 @@
-import { IsUUID, IsString, IsNumber, IsOptional, IsEnum, ValidateNested, IsArray, IsNotEmpty } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderPriority } from '@calo/shared';
+import { IsUUID, IsArray, IsNotEmpty, IsNumber, IsOptional, ValidateNested, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class OrderItemDto {
   @ApiProperty({ description: 'Item ID' })
@@ -9,51 +8,44 @@ export class OrderItemDto {
   itemId: string;
 
   @ApiProperty({ description: 'Item name' })
-  @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ description: 'Quantity' })
+  @ApiProperty({ description: 'Quantity', minimum: 1 })
   @IsNumber()
+  @Min(1)
   quantity: number;
 
   @ApiProperty({ description: 'Unit price' })
   @IsNumber()
+  @Min(0)
   unitPrice: number;
-
-  @ApiProperty({ description: 'Total price' })
-  @IsNumber()
-  totalPrice: number;
-
-  @ApiProperty({ description: 'Special instructions', required: false })
-  @IsOptional()
-  @IsString()
-  specialInstructions?: string;
 }
 
-export class OrderLocationDto {
+export class DeliveryAddressDto {
+  @ApiProperty({ description: 'Street address' })
+  @IsNotEmpty()
+  street: string;
+
+  @ApiProperty({ description: 'City' })
+  @IsNotEmpty()
+  city: string;
+
+  @ApiProperty({ description: 'Postal code' })
+  @IsNotEmpty()
+  postalCode: string;
+
   @ApiProperty({ description: 'Latitude' })
   @IsNumber()
+  @Min(-90)
+  @Max(90)
   latitude: number;
 
   @ApiProperty({ description: 'Longitude' })
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   longitude: number;
-
-  @ApiProperty({ description: 'Delivery address' })
-  @IsString()
-  @IsNotEmpty()
-  address: string;
-
-  @ApiProperty({ description: 'City', required: false })
-  @IsOptional()
-  @IsString()
-  city?: string;
-
-  @ApiProperty({ description: 'Postal code', required: false })
-  @IsOptional()
-  @IsString()
-  postalCode?: string;
 }
 
 export class CreateOrderDto {
@@ -61,28 +53,28 @@ export class CreateOrderDto {
   @IsUUID()
   customerId: string;
 
-  @ApiProperty({ description: 'Restaurant ID' })
-  @IsUUID()
-  restaurantId: string;
-
   @ApiProperty({ description: 'Order items', type: [OrderItemDto] })
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
-  @IsArray()
   items: OrderItemDto[];
 
-  @ApiProperty({ description: 'Delivery location', type: OrderLocationDto })
+  @ApiProperty({ description: 'Delivery address', type: DeliveryAddressDto })
   @ValidateNested()
-  @Type(() => OrderLocationDto)
-  deliveryLocation: OrderLocationDto;
+  @Type(() => DeliveryAddressDto)
+  deliveryAddress: DeliveryAddressDto;
 
-  @ApiProperty({ description: 'Order priority', enum: OrderPriority, required: false })
+  @ApiProperty({ description: 'Order priority', minimum: 1, maximum: 5, required: false })
   @IsOptional()
-  @IsEnum(OrderPriority)
-  priority?: OrderPriority;
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  priority?: number = 1;
 
-  @ApiProperty({ description: 'Special instructions', required: false })
+  @ApiProperty({ description: 'Maximum delivery time in minutes', required: false })
   @IsOptional()
-  @IsString()
-  specialInstructions?: string;
+  @IsNumber()
+  @Min(15)
+  @Max(120)
+  maxDeliveryTimeMinutes?: number = 60;
 } 
