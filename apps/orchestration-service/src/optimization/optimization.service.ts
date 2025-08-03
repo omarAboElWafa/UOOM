@@ -333,13 +333,13 @@ export class OptimizationService {
     const totalValue = order.items.reduce((sum, item) => sum + item.totalPrice, 0);
     
     // Adjust weights based on order value and priority
-    if (order.priority === 'HIGH' || totalValue > 100) {
+    if (order.priority === 5 || totalValue > 100) {
       return {
         delivery_time: 0.7,
         cost: 0.2,
         quality: 0.1,
       };
-    } else if (order.priority === 'LOW' || totalValue < 30) {
+    } else if (order.priority === 1 || totalValue < 30) {
       return {
         delivery_time: 0.3,
         cost: 0.5,
@@ -374,13 +374,14 @@ export class OptimizationService {
     }
   }
 
-  private mapPriorityToNumber(priority: string): number {
+  private mapPriorityToNumber(priority: number): number {
+    // Priority is already a number (1-5), map to optimization priority (1-10)
     switch (priority) {
-      case 'HIGH':
+      case 5: // HIGH
         return 9;
-      case 'NORMAL':
+      case 3: // NORMAL
         return 5;
-      case 'LOW':
+      case 1: // LOW
         return 2;
       default:
         return 5;

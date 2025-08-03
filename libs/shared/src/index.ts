@@ -15,7 +15,7 @@ export * from './dto/order.dto';
 export * from './dto/restaurant.dto';
 export * from './dto/delivery.dto';
 
-// Enums
+// Enums - these are the primary exports, types files should not re-export these
 export * from './enums/order-status.enum';
 export * from './enums/delivery-status.enum';
 export * from './enums/optimization-type.enum';

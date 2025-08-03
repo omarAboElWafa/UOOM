@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsArray, IsNotEmpty, IsNumber, IsOptional, ValidateNested, Min, Max } from 'class-validator';
+import { IsUUID, IsArray, IsNotEmpty, IsNumber, IsOptional, ValidateNested, Min, Max, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class OrderItemDto {
@@ -20,6 +20,17 @@ export class OrderItemDto {
   @IsNumber()
   @Min(0)
   unitPrice: number;
+
+  @ApiProperty({ description: 'Total price for this item', required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalPrice?: number;
+
+  @ApiProperty({ description: 'Special instructions for this item', required: false })
+  @IsOptional()
+  @IsString()
+  specialInstructions?: string;
 }
 
 export class DeliveryAddressDto {
@@ -48,6 +59,9 @@ export class DeliveryAddressDto {
   longitude: number;
 }
 
+// Alias for backward compatibility
+export class OrderLocationDto extends DeliveryAddressDto {}
+
 export class CreateOrderDto {
   @ApiProperty({ description: 'Customer ID' })
   @IsUUID()
@@ -63,6 +77,12 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => DeliveryAddressDto)
   deliveryAddress: DeliveryAddressDto;
+
+  // Alias for backward compatibility
+  @ApiProperty({ description: 'Delivery location (alias for deliveryAddress)', type: DeliveryAddressDto })
+  @ValidateNested()
+  @Type(() => DeliveryAddressDto)
+  deliveryLocation: DeliveryAddressDto;
 
   @ApiProperty({ description: 'Order priority', minimum: 1, maximum: 5, required: false })
   @IsOptional()
@@ -82,4 +102,9 @@ export class CreateOrderDto {
   @IsOptional()
   @IsNotEmpty()
   specialInstructions?: string;
+
+  @ApiProperty({ description: 'Correlation ID for tracking', required: false })
+  @IsOptional()
+  @IsString()
+  correlationId?: string;
 } 

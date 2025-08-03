@@ -9,12 +9,24 @@ import { OutboxEvent } from '../entities/outbox-event.entity';
 import { OrderCacheService } from '@calo/database';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { OrderResponseDto } from './dto/order-response.dto';
 import { OrderStatusDto } from './dto/order-status.dto';
 import { OrderStatus, OrderPriority } from '@calo/shared';
 
 import { CircuitBreakerService } from '../common/services/circuit-breaker.service';
 import { OrderSagaService, OrderSagaData } from '../saga/order-saga.service';
+import { EnhancedOrderSagaService, SagaExecutionOptions } from '../saga/enhanced-order-saga.service';
+
+// Define OrderResponse interface
+interface OrderResponse {
+  id: string;
+  customerId: string;
+  channelId: string;
+  status: OrderStatus;
+  totalAmount: number;
+  estimatedDeliveryTime: Date;
+  createdAt: Date;
+  correlationId: string;
+}
 
 @Injectable()
 export class OrderService {
@@ -30,10 +42,12 @@ export class OrderService {
     private dataSource: DataSource,
     private circuitBreaker: CircuitBreakerService,
     private orderCacheService: OrderCacheService,
+    private enhancedSagaService: EnhancedOrderSagaService, // Add enhanced saga service
+    // Keep backward compatibility
     private orderSagaService: OrderSagaService,
   ) {}
 
-  async processOrder(createOrderDto: CreateOrderDto, correlationId?: string): Promise<OrderResponseDto> {
+  async processOrder(createOrderDto: CreateOrderDto, correlationId?: string): Promise<OrderResponse> {
     const startTime = Date.now();
     
     // Use database transaction with outbox pattern
@@ -136,7 +150,7 @@ export class OrderService {
     });
   }
 
-  async getOrderById(orderId: string): Promise<OrderResponseDto> {
+  async getOrderById(orderId: string): Promise<OrderResponse> {
     // Try cache first for faster response
     const cachedOrder = await this.orderCacheService.getOrderDetails(orderId);
     if (cachedOrder) {
@@ -221,7 +235,7 @@ export class OrderService {
     }
   }
 
-  async updateOrder(orderId: string, updateOrderDto: UpdateOrderDto): Promise<OrderResponseDto> {
+  async updateOrder(orderId: string, updateOrderDto: UpdateOrderDto): Promise<OrderResponse> {
     return this.dataSource.transaction(async manager => {
       const order = await manager.findOne(Order, { where: { id: orderId } });
       if (!order) {
@@ -274,7 +288,7 @@ export class OrderService {
     });
   }
 
-  async cancelOrder(orderId: string): Promise<OrderResponseDto> {
+  async cancelOrder(orderId: string): Promise<OrderResponse> {
     return this.dataSource.transaction(async manager => {
       const order = await manager.findOne(Order, { where: { id: orderId } });
       if (!order) {
@@ -331,6 +345,16 @@ export class OrderService {
     }));
   }
 
+  // Enhanced saga status endpoint
+  async getOrderSagaStatusEnhanced(orderId: string) {
+    return this.enhancedSagaService.getEnhancedOrderSagaStatus(orderId);
+  }
+
+  // Enhanced saga management endpoints
+  async getOrderSagasEnhanced(orderId: string) {
+    return this.enhancedSagaService.getOrderSagasWithDetails(orderId);
+  }
+
   private async getCachedOrderStatus(orderId: string): Promise<OrderStatusDto | null> {
     try {
       return await this.orderCacheService.getOrderStatus(orderId);
@@ -374,7 +398,7 @@ export class OrderService {
     }
   }
 
-     private mapToResponseDto(order: Order): OrderResponseDto {
+     private mapToResponseDto(order: Order): OrderResponse {
      return {
        id: order.id,
        customerId: order.customerId,

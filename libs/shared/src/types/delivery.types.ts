@@ -1,12 +1,4 @@
-export enum DeliveryStatus {
-  PENDING = 'PENDING',
-  ASSIGNED = 'ASSIGNED',
-  PICKED_UP = 'PICKED_UP',
-  IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED'
-}
+import { DeliveryStatus } from '../enums/delivery-status.enum';
 
 export enum DriverStatus {
   AVAILABLE = 'AVAILABLE',

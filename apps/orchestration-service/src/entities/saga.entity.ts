@@ -14,6 +14,7 @@ export enum SagaStatus {
   FAILED = 'FAILED',
   COMPENSATING = 'COMPENSATING',
   COMPENSATED = 'COMPENSATED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum SagaStepStatus {
@@ -90,6 +91,9 @@ export class Saga {
 
   @Column({ type: 'integer', default: 3, name: 'max_retries' })
   maxRetries: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

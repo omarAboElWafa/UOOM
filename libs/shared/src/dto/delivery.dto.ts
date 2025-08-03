@@ -1,6 +1,7 @@
 import { IsUUID, IsString, IsNumber, IsDate, IsOptional, IsEnum, ValidateNested, IsArray, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DeliveryStatus, DriverStatus, VehicleType } from '../types/delivery.types';
+import { DeliveryStatus } from '../enums/delivery-status.enum';
+import { DriverStatus, VehicleType } from '../types/delivery.types';
 
 export class DriverLocationDto {
   @IsNumber()

@@ -1,6 +1,6 @@
 import { IsUUID, IsString, IsNumber, IsDate, IsOptional, IsEnum, ValidateNested, IsArray, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderStatus, OrderPriority } from '../types/order.types';
+import { OrderStatus, OrderPriority } from '../enums/order-status.enum';
 
 export class OrderItemDto {
   @IsUUID()

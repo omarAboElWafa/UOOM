@@ -1,23 +1,4 @@
-
-
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  PREPARING = 'PREPARING',
-  READY_FOR_PICKUP = 'READY_FOR_PICKUP',
-  PICKED_UP = 'PICKED_UP',
-  IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
-  FAILED = 'FAILED'
-}
-
-export enum OrderPriority {
-  LOW = 'LOW',
-  NORMAL = 'NORMAL',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT'
-}
+import { OrderStatus, OrderPriority } from '../enums/order-status.enum';
 
 export interface OrderItem {
   itemId: string;

@@ -1,4 +1,4 @@
-import { OrderStatus, OrderPriority } from '../types/order.types';
+import { OrderStatus, OrderPriority } from '../enums/order-status.enum';
 
 export enum OrderEventType {
   ORDER_CREATED = 'ORDER_CREATED',

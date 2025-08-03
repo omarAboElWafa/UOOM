@@ -1,10 +1,4 @@
-export enum OptimizationType {
-  ROUTE_OPTIMIZATION = 'ROUTE_OPTIMIZATION',
-  DRIVER_ASSIGNMENT = 'DRIVER_ASSIGNMENT',
-  RESTAURANT_ASSIGNMENT = 'RESTAURANT_ASSIGNMENT',
-  CAPACITY_PLANNING = 'CAPACITY_PLANNING',
-  DELIVERY_SCHEDULING = 'DELIVERY_SCHEDULING'
-}
+import { OptimizationType } from '../enums/optimization-type.enum';
 
 export enum OptimizationStatus {
   PENDING = 'PENDING',

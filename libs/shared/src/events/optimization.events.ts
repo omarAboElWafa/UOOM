@@ -1,4 +1,5 @@
-import { OptimizationType, OptimizationStatus } from '../types/optimization.types';
+import { OptimizationType } from '../enums/optimization-type.enum';
+import { OptimizationStatus } from '../types/optimization.types';
 
 export enum OptimizationEventType {
   OPTIMIZATION_REQUESTED = 'OPTIMIZATION_REQUESTED',
