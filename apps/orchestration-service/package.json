@@ -30,6 +30,8 @@
     "@nestjs/bull": "^10.0.0",
     "@nestjs/throttler": "^5.0.0",
     "@nestjs/cache-manager": "^2.0.0",
+    "@nestjs/axios": "^3.0.0",
+    "cache-manager": "^5.2.0",
     "typeorm": "^0.3.0",
     "pg": "^8.11.0",
     "redis": "^4.6.0",

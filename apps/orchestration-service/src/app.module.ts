@@ -7,40 +7,21 @@ import { TerminusModule } from '@nestjs/terminus';
 import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
+import { HttpModule } from '@nestjs/axios';
 
-// Controllers
-import { OrdersController } from './controllers/orders.controller';
-import { RestaurantsController } from './controllers/restaurants.controller';
-import { DeliveryController } from './controllers/delivery.controller';
-import { OptimizationController } from './controllers/optimization.controller';
-import { HealthController } from './controllers/health.controller';
-
-// Services
-import { OrdersService } from './services/orders.service';
-import { RestaurantsService } from './services/restaurants.service';
-import { DeliveryService } from './services/delivery.service';
-import { OptimizationService } from './services/optimization.service';
-import { CapacityService } from './services/capacity.service';
-import { EventService } from './services/event.service';
-import { OutboxService } from './services/outbox.service';
-
-// Repositories
-import { OrdersRepository } from './repositories/orders.repository';
-import { RestaurantsRepository } from './repositories/restaurants.repository';
-import { DeliveryRepository } from './repositories/delivery.repository';
-import { OutboxRepository } from './repositories/outbox.repository';
+// Feature Modules
+import { OrderModule } from './order/order.module';
+import { RoutingModule } from './routing/routing.module';
+import { OutboxModule } from './outbox/outbox.module';
+import { HealthModule } from './health/health.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 // Entities
 import { Order } from './entities/order.entity';
+import { OutboxEvent } from './entities/outbox-event.entity';
 import { Restaurant } from './entities/restaurant.entity';
 import { Driver } from './entities/driver.entity';
 import { DeliveryAssignment } from './entities/delivery-assignment.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
-
-// Processors
-import { OrderProcessor } from './processors/order.processor';
-import { OptimizationProcessor } from './processors/optimization.processor';
-import { OutboxProcessor } from './processors/outbox.processor';
 
 // Guards
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -126,7 +107,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         ttl: configService.get<number>('THROTTLE_TTL', 60),
-        limit: configService.get<number>('THROTTLE_LIMIT', 100),
+        limit: configService.get<number>('THROTTLE_LIMIT', 1000),
       }),
       inject: [ConfigService],
     }),
@@ -146,6 +127,19 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
       inject: [ConfigService],
     }),
 
+    // HTTP Module for external service calls
+    HttpModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        timeout: 5000,
+        maxRedirects: 5,
+        headers: {
+          'User-Agent': 'UOOP-Orchestration-Service',
+        },
+      }),
+      inject: [ConfigService],
+    }),
+
     // Feature Modules
     TypeOrmModule.forFeature([
       Order,
@@ -161,35 +155,15 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
       { name: 'optimization' },
       { name: 'outbox' },
     ),
-  ],
-  controllers: [
-    OrdersController,
-    RestaurantsController,
-    DeliveryController,
-    OptimizationController,
-    HealthController,
+
+    // Feature Modules
+    OrderModule,
+    RoutingModule,
+    OutboxModule,
+    HealthModule,
+    MonitoringModule,
   ],
   providers: [
-    // Services
-    OrdersService,
-    RestaurantsService,
-    DeliveryService,
-    OptimizationService,
-    CapacityService,
-    EventService,
-    OutboxService,
-
-    // Repositories
-    OrdersRepository,
-    RestaurantsRepository,
-    DeliveryRepository,
-    OutboxRepository,
-
-    // Processors
-    OrderProcessor,
-    OptimizationProcessor,
-    OutboxProcessor,
-
     // Guards
     {
       provide: APP_GUARD,
