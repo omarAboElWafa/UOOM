@@ -1,0 +1,35 @@
+{
+  "name": "calo-uoop",
+  "version": "1.0.0",
+  "description": "Calo's Unified Order Orchestration Platform - High-performance food delivery order processing system",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write .",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "infra:deploy": "cd infrastructure && npm run deploy",
+    "infra:destroy": "cd infrastructure && npm run destroy",
+    "db:migrate": "npm run migrate --workspace=libs/database",
+    "db:seed": "npm run seed --workspace=libs/database",
+    "start:dev": "concurrently \"npm run start:dev --workspace=apps/orchestration-service\" \"npm run start:dev --workspace=apps/optimization-service\" \"npm run start:dev --workspace=apps/outbox-relay-service\" \"npm run start:dev --workspace=apps/capacity-service\" \"npm run start:dev --workspace=apps/api-gateway\"",
+    "install:all": "npm install --legacy-peer-deps && npm install --workspace=libs/shared --legacy-peer-deps && npm install --workspace=libs/database --legacy-peer-deps && npm install --workspace=libs/redis --legacy-peer-deps && npm install --workspace=libs/kafka --legacy-peer-deps && npm install --workspace=libs/monitoring --legacy-peer-deps"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+} 

@@ -1,0 +1,27 @@
+{
+  "name": "@calo/database",
+  "version": "1.0.0",
+  "description": "Database connections and repositories for UOOP platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "migrate": "ts-node scripts/migrate.ts",
+    "seed": "ts-node scripts/seed.ts"
+  },
+  "dependencies": {
+    "typeorm": "^0.3.0",
+    "pg": "^8.11.0",
+    "reflect-metadata": "^0.1.13",
+    "@calo/shared": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
+} 

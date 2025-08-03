@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@calo/shared": ["libs/shared/src/index.ts"],
+      "@calo/database": ["libs/database/src/index.ts"],
+      "@calo/redis": ["libs/redis/src/index.ts"],
+      "@calo/kafka": ["libs/kafka/src/index.ts"],
+      "@calo/monitoring": ["libs/monitoring/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+} 

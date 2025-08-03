@@ -1,0 +1,23 @@
+{
+  "name": "@calo/kafka",
+  "version": "1.0.0",
+  "description": "Kafka producers and consumers for UOOP platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.0",
+    "@calo/shared": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
+} 

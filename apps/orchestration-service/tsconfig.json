@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": "./",
+    "paths": {
+      "@calo/shared": ["../../libs/shared/src/index.ts"],
+      "@calo/database": ["../../libs/database/src/index.ts"],
+      "@calo/redis": ["../../libs/redis/src/index.ts"],
+      "@calo/kafka": ["../../libs/kafka/src/index.ts"],
+      "@calo/monitoring": ["../../libs/monitoring/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+} 
