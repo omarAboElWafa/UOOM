@@ -103,6 +103,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:29092
+      # DynamoDB Configuration
+      AWS_REGION: us-east-1
+      DYNAMODB_TABLE_PREFIX: uoom-dev-
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000  # For local development
+      DAX_ENDPOINT: # Leave empty for development, set for production
+      ORDER_CACHE_TTL_HOURS: 72
       CORS_ORIGIN: "*"
       THROTTLE_TTL: 60
       THROTTLE_LIMIT: 1000
@@ -291,6 +297,21 @@ services:
       - uoop-network
     depends_on:
       - prometheus
+
+  # Local DynamoDB for development
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: uoop-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
+    networks:
+      - uoop-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
