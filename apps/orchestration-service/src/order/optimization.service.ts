@@ -3,7 +3,10 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OptimizationService as NewOptimizationService } from '../optimization/optimization.service';
+import { FulfillmentChannel } from '../optimization/optimization.types';
 
+// Legacy interfaces for backward compatibility
 export interface OptimizationRequest {
   order: CreateOrderDto;
   channels: string[];
@@ -30,10 +33,11 @@ export class OptimizationService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly newOptimizationService: NewOptimizationService,
   ) {
     this.optimizationServiceUrl = this.configService.get<string>(
       'OPTIMIZATION_SERVICE_URL',
-      'http://localhost:8001'
+      'http://localhost:8000'
     );
   }
 
@@ -41,52 +45,38 @@ export class OptimizationService {
     const startTime = Date.now();
     
     try {
-      // Calculate total from items
-      const total = order.items.reduce((sum, item) => sum + item.totalPrice, 0);
-      
-      const request: OptimizationRequest = {
-        order,
-        channels,
-        constraints: {
-          maxDeliveryTime: 45 * 60, // 45 minutes in seconds
-          maxCost: total * 1.1, // 10% buffer
-          priority: order.priority || 'NORMAL',
+      // Convert string channels to FulfillmentChannel objects for the new service
+      const fulfillmentChannels: FulfillmentChannel[] = channels.map((channelId, index) => ({
+        id: channelId,
+        name: `Channel ${index + 1}`,
+        type: 'standard',
+        capacity: 10,
+        currentLoad: 0,
+        availableCapacity: 10,
+        costPerOrder: 5.0,
+        qualityScore: 85,
+        prepTimeMinutes: 30,
+        location: {
+          latitude: order.deliveryLocation.latitude + (index * 0.01),
+          longitude: order.deliveryLocation.longitude + (index * 0.01),
         },
-      };
+        vehicleType: 'car',
+        maxDistance: 25.0,
+        isActive: true,
+      }));
 
-      this.logger.debug(`Sending optimization request`, {
-        orderId: order.customerId,
-        channelsCount: channels.length,
-        constraints: request.constraints,
-      });
-
-      const response = await firstValueFrom(
-        this.httpService.post<OptimizationResponse>(
-          `${this.optimizationServiceUrl}/optimize`,
-          request,
-          {
-            timeout: 5000, // 5 second timeout
-            headers: {
-              'Content-Type': 'application/json',
-              'User-Agent': 'UOOP-Orchestration-Service',
-            },
-          }
-        )
-      );
-
+      // Use the new optimization service
+      const result = await this.newOptimizationService.optimize(order, fulfillmentChannels);
+      
       const processingTime = Date.now() - startTime;
-      const responseData = (response as any).data as OptimizationResponse;
       
       this.logger.log(`Optimization completed in ${processingTime}ms`, {
         orderId: order.customerId,
-        optimalChannel: responseData.optimalChannel,
-        score: responseData.score,
-        estimatedDeliveryTime: responseData.estimatedDeliveryTime,
-        estimatedCost: responseData.estimatedCost,
+        optimalChannel: result,
         processingTime,
       });
 
-      return responseData.optimalChannel;
+      return result;
     } catch (error) {
       const processingTime = Date.now() - startTime;
       

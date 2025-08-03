@@ -15,13 +15,10 @@ import { RoutingModule } from './routing/routing.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { HealthModule } from './health/health.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { OptimizationModule } from './optimization/optimization.module';
 
 // Entities
-import { Order } from './entities/order.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
-import { Restaurant } from './entities/restaurant.entity';
-import { Driver } from './entities/driver.entity';
-import { DeliveryAssignment } from './entities/delivery-assignment.entity';
+import { Order, OutboxEvent, Restaurant, Driver, DeliveryAssignment } from './entities';
 
 // Guards
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -106,8 +103,12 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        ttl: configService.get<number>('THROTTLE_TTL', 60),
-        limit: configService.get<number>('THROTTLE_LIMIT', 1000),
+        throttlers: [
+          {
+            ttl: configService.get<number>('THROTTLE_TTL', 60),
+            limit: configService.get<number>('THROTTLE_LIMIT', 1000),
+          },
+        ],
       }),
       inject: [ConfigService],
     }),
@@ -162,6 +163,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
     OutboxModule,
     HealthModule,
     MonitoringModule,
+    OptimizationModule,
   ],
   providers: [
     // Guards

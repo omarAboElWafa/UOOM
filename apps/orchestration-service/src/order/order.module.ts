@@ -17,6 +17,7 @@ import { RoutingService } from '../routing/routing.service';
 import { OutboxService } from '../outbox/outbox.service';
 import { OptimizationService } from './optimization.service';
 import { CircuitBreakerService } from '../common/services/circuit-breaker.service';
+import { OptimizationModule } from '../optimization/optimization.module';
 
 // DTOs
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -31,7 +32,6 @@ import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 // Interceptors
 import { LoggingInterceptor } from '../interceptors/logging.interceptor';
 import { MetricsInterceptor } from '../interceptors/metrics.interceptor';
-import { CacheInterceptor } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -42,6 +42,7 @@ import { CacheInterceptor } from '@nestjs/common';
       max: 1000,
     }),
     BullModule.registerQueue({ name: 'orders' }),
+    OptimizationModule,
   ],
   controllers: [OrderController],
   providers: [
@@ -54,7 +55,6 @@ import { CacheInterceptor } from '@nestjs/common';
     RateLimitGuard,
     LoggingInterceptor,
     MetricsInterceptor,
-    CacheInterceptor,
   ],
   exports: [OrderService],
 })
