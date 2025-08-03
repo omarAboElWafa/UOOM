@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { UoopStack } from '../lib/uoop-stack';
+import { CaloUoopStack } from '../lib/calo-uoop-stack';
 
 const app = new cdk.App();
 
@@ -9,7 +9,7 @@ const app = new cdk.App();
 const environment = app.node.tryGetContext('environment') || 'development';
 
 // Create the main UOOP stack
-new UoopStack(app, `UoopStack-${environment}`, {
+new CaloUoopStack(app, `UoopStack-${environment}`, {
   environment,
   description: `UOOP Platform Infrastructure - ${environment}`,
   env: {
